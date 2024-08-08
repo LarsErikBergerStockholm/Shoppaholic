@@ -8,11 +8,10 @@ import {
   Form,
   Button,
   Card,
-  ListGroupItem,
 } from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
 import Message from "../components/Message";
-import { addToCart } from "../slices/cartSlice";
+import { addToCart, removeFromCart } from "../slices/cartSlice";
 
 const CartScreen = () => {
   const navigate = useNavigate();
@@ -21,8 +20,16 @@ const CartScreen = () => {
   const cart = useSelector((state) => state.cart);
   const { cartItems } = cart;
 
-  const addToCartHandler = async (product, qty) => {
+  // NOTE: no need for an async function here as we are not awaiting the
+  // resolution of a Promise
+  const addToCartHandler = (product, qty) => {
+    console.log("TEST", product);
+    console.log("TEST", cart);
     dispatch(addToCart({ ...product, qty }));
+  };
+
+  const removeFromCartHandler = (id) => {
+    dispatch(removeFromCart(id));
   };
 
   const checkoutHandler = () => {
@@ -34,25 +41,19 @@ const CartScreen = () => {
       <Col md={8}>
         <h1 style={{ marginBottom: "20px" }}>Shopping Cart</h1>
         {cartItems.length === 0 ? (
-          <div>
-            <Message text={"Your cart is empty"}></Message>
-            <Link to="/">Go Back</Link>
-          </div>
+          <Message>
+            Your cart is empty <Link to="/">Go Back</Link>
+          </Message>
         ) : (
           <ListGroup variant="flush">
             {cartItems.map((item) => (
-              <ListGroupItem key={item._id}>
+              <ListGroup.Item key={item._id}>
                 <Row>
                   <Col md={2}>
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fluid
-                      rounded
-                    ></Image>
+                    <Image src={item.image} alt={item.name} fluid rounded />
                   </Col>
                   <Col md={3}>
-                    <Link to={`/product/${item._id}`}> {item.name}</Link>
+                    <Link to={`/product/${item._id}`}>{item.name}</Link>
                   </Col>
                   <Col md={2}>${item.price}</Col>
                   <Col md={2}>
@@ -71,12 +72,16 @@ const CartScreen = () => {
                     </Form.Control>
                   </Col>
                   <Col md={2}>
-                    <Button type="button" variant="light">
+                    <Button
+                      type="button"
+                      variant="light"
+                      onClick={() => removeFromCartHandler(item._id)}
+                    >
                       <FaTrash />
                     </Button>
                   </Col>
                 </Row>
-              </ListGroupItem>
+              </ListGroup.Item>
             ))}
           </ListGroup>
         )}
@@ -84,7 +89,7 @@ const CartScreen = () => {
       <Col md={4}>
         <Card>
           <ListGroup variant="flush">
-            <ListGroupItem>
+            <ListGroup.Item>
               <h2>
                 Subtotal ({cartItems.reduce((acc, item) => acc + item.qty, 0)})
                 items
@@ -93,17 +98,17 @@ const CartScreen = () => {
               {cartItems
                 .reduce((acc, item) => acc + item.qty * item.price, 0)
                 .toFixed(2)}
-            </ListGroupItem>
-            <ListGroupItem>
-              <button
+            </ListGroup.Item>
+            <ListGroup.Item>
+              <Button
                 type="button"
                 className="btn-block"
                 disabled={cartItems.length === 0}
                 onClick={checkoutHandler}
               >
                 Proceed To Checkout
-              </button>
-            </ListGroupItem>
+              </Button>
+            </ListGroup.Item>
           </ListGroup>
         </Card>
       </Col>
